@@ -7,10 +7,40 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Book_model extends CI_Model {
 
-	/**
+    public function __construct() {
+        $this->load->database();
+    }
+
+    public function loadList()
+    {
+        $data = $this->loadIncodeList();
+        foreach ($data as &$book) {
+            $authorName = $book['author_name'];
+            $query = $this->db
+                ->like('name', $authorName)
+                ->get('author');
+
+            $author = null;
+            if (!$query->result()) {
+                $author = ['name' => $authorName];
+                $this->db->insert('author', $author);
+                $authorQuery = $this->db->select('author', ['name' => $authorName])->get('author');
+                $author = $authorQuery->first_row();
+            } else {
+                $author = $query->first_row();
+            }
+
+            $book['author_id'] = $author->id;
+        }
+
+        return $this->db->insert_batch('book', $data);
+    }
+
+    /**
 	 * Загрузка списка книг
 	 */
-	public function loadList()
+//	public function loadList()
+	public function loadIncodeList()
 	{
 		// todo реализовать получение списка книг из БД
 		return array(
