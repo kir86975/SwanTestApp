@@ -11,26 +11,11 @@ class Book_model extends CI_Model {
         $this->load->database();
     }
 
-    public function loadList()
+    public function hardcodedListToDB()
     {
         $data = $this->loadIncodeList();
         foreach ($data as &$book) {
-            $authorName = $book['author_name'];
-            $query = $this->db
-                ->like('name', $authorName)
-                ->get('author');
-
-            $author = null;
-            if (!$query->result()) {
-                $author = ['name' => $authorName];
-                $this->db->insert('author', $author);
-                $authorQuery = $this->db->select('author', ['name' => $authorName])->get('author');
-                $author = $authorQuery->first_row();
-            } else {
-                $author = $query->first_row();
-            }
-
-            $book['author_id'] = $author->id;
+            $this->prepareBookForDB($book);
         }
 
         return $this->db->insert_batch('book', $data);
@@ -40,7 +25,7 @@ class Book_model extends CI_Model {
 	 * Загрузка списка книг
 	 */
 //	public function loadList()
-	public function loadIncodeList()
+	private function loadIncodeList()
 	{
 		// todo реализовать получение списка книг из БД
 		return array(
@@ -49,4 +34,69 @@ class Book_model extends CI_Model {
 			array('book_id' => 3, 'book_name' => 'Анна Каренина', 'author_name' => 'Толстой Л.Н.', 'book_year' => 1877)
 		);
 	}
+
+	public function loadList()
+    {
+        $query = $this->db
+            ->select('book.id book_id, book.name book_name, author.name author_name, year book_year')
+            ->from('book')
+            ->join('author', 'book.author_id = author.id')
+            ->get();
+
+        return $query->result_array();
+    }
+
+    public function addBook($book)
+    {
+        // todo Реализовать валидацию.
+
+        $this->prepareBookForDB($book);
+        $book = $this->tryToInsertBook($book);
+    }
+
+    private function tryToInsertBook($book)
+    {
+        $this->db->insert('book', $book);
+    }
+
+    /**
+     * @param $book
+     */
+    private function prepareBookForDB(&$book): void {
+        $authorName = $book['author_name'];
+        $author = $this->getInsertedAuthor($authorName);
+
+        $book['author_id'] = $author->id;
+        $book['id'] = $book['book_id'];
+        $book['name'] = $book['book_name'];
+        unset($book['book_id']);
+        unset($book['book_name']);
+        unset($book['author_name']);
+    }
+
+    /**
+     * @param $authorName
+     * @return array|null
+     */
+    private function getInsertedAuthor($authorName) {
+        $query = $this->db
+            ->like('name', $authorName)
+            ->get('author');
+
+        $author = null;
+        if (!$query->result()) {
+            $author = ['name' => $authorName];
+            $this->db->insert('author', $author);
+
+            $authorQuery = $this->db
+                ->select('author', ['name' => $authorName])
+                ->get('author');
+
+            $author = $authorQuery->first_row();
+        } else {
+            $author = $query->first_row();
+        }
+
+        return $author;
+    }
 }
