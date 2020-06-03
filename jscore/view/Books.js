@@ -13,11 +13,11 @@ Ext.define('Swan.model.Books', {
 });
 
 Ext.define('PopupForm', {
-    extend: 'Ext.form.Panel',
+    extend: 'Ext.window.Window',
     xtype: 'popupform',
     controller: 'popupform',
 
-    title: 'Update Record',
+    title: 'Обновить запись',
 
     width: 300,
     floating: true,
@@ -39,7 +39,7 @@ Ext.define('PopupForm', {
         xtype: 'textfield',
         name: 'year',
         label: 'Год издания',
-        bind: '{book.year}'
+        bind: '{book.book_year}'
 
     }, {
         xtype: 'toolbar',
@@ -80,34 +80,31 @@ Ext.define('PopupFormController', {
     }
 });
 
-Ext.define('MyListViewController', {
-    extend: 'Ext.app.ViewController',
-    alias: 'controller.listview',
-
-    onPopupForm: function (view, index, item, record) {
-        console.log('onPopupForm fired');
-        Ext.Viewport.add({
-            xtype: 'popupform',
-            width: 400,
-            record: record,
-            viewModel : {
-                data: {
-                    book: record
-                }
-            }
-        });
-    }
-});
+// Ext.define('MyListViewController', {
+//     extend: 'Ext.app.ViewController',
+//     alias: 'controller.listview',
+//
+//     onPopupForm: function (view, index, item, record) {
+//         console.log('onPopupForm fired');
+//         Ext.Viewport.add({
+//             xtype: 'popupform',
+//             width: 400,
+//             record: record,
+//             viewModel : {
+//                 data: {
+//                     book: record
+//                 }
+//             }
+//         });
+//     }
+// });
 
 /**
  * Список книг
  */
 Ext.define('Swan.view.Books', {
 	extend: 'Ext.grid.Panel',
-    controller: 'listview',
-    listeners: {
-        itemtap: 'onPopupForm'
-    },
+    id: 'mainGrid',
     store: {
 		type: 'books',
 		autoLoad: true,
@@ -127,8 +124,21 @@ Ext.define('Swan.view.Books', {
 	}, {
 		text: 'Редактировать',
 		handler: function() {
-			// todo надо реализовать редактирование
-			Ext.Msg.alert('В разработке', 'Данный функционал ещё не реализован');
+		    var grid = Ext.getCmp('mainGrid');
+		    var record = grid.getSelectionModel().getSelection()[0];
+		    console.log(record);
+
+            var window = Ext.create('PopupForm',{
+                    width: 400,
+                    record: record,
+                    viewModel : {
+                        data: {
+                            book: record
+                        }
+                    }
+            });
+
+            window.show();
 		}
 	}, {
 		text: 'Удалить',
