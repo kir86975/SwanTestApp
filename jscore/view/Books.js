@@ -13,34 +13,39 @@ Ext.define('Swan.model.Books', {
 });
 
 Ext.define('PopupForm', {
-    extend: 'Ext.window.Window',
+    extend: 'Ext.form.Panel',
     xtype: 'popupform',
     controller: 'popupform',
 
-    title: 'Обновить запись',
+    title: 'Редактирование записи',
 
     width: 300,
     floating: true,
     centered: true,
     modal: true,
+    resizable: false,
 
     items: [{
         xtype: 'textfield',
         name: 'author_name',
         label: 'Автор',
-        bind: '{book.author_name}'
+        bind: '{book.author_name}',
+        padding: '10px 100px 0 10px',
+        width: '95%'
     }, {
         xtype: 'textfield',
         name: 'book_name',
         label: 'Название книги',
-        bind: '{book.book_name}'
-
+        bind: '{book.book_name}',
+        padding: '10px 10px 0 10px',
+        width: '95%'
     }, {
         xtype: 'textfield',
         name: 'year',
         label: 'Год издания',
-        bind: '{book.book_year}'
-
+        bind: '{book.book_year}',
+        padding: '10px 10px 0 10px',
+        width: '95%'
     }, {
         xtype: 'toolbar',
         docked: 'bottom',
@@ -65,7 +70,7 @@ Ext.define('PopupFormController', {
 
     cancelUpdate: function () {
         var view = this.getView(),
-            record = view.getRecord();
+            record = view.record;
 
         view.destroy();
         record.reject();
@@ -73,7 +78,7 @@ Ext.define('PopupFormController', {
 
     submitUpdate: function(me) {
         var view = this.getView(),
-            record = view.getRecord();
+            record = view.record;
 
         view.destroy();
         record.commit();
@@ -84,10 +89,12 @@ Ext.define('PopupFormController', {
 //     extend: 'Ext.app.ViewController',
 //     alias: 'controller.listview',
 //
-//     onPopupForm: function (view, index, item, record) {
-//         console.log('onPopupForm fired');
-//         Ext.Viewport.add({
-//             xtype: 'popupform',
+//     onEditClick: function() {
+//         var grid = Ext.getCmp('mainGrid');
+//         var record = grid.getSelectionModel().getSelection()[0];
+//         console.log(record);
+//
+//         var window = Ext.create('PopupForm',{
 //             width: 400,
 //             record: record,
 //             viewModel : {
@@ -96,6 +103,8 @@ Ext.define('PopupFormController', {
 //                 }
 //             }
 //         });
+//
+//         window.show();
 //     }
 // });
 
@@ -126,7 +135,6 @@ Ext.define('Swan.view.Books', {
 		handler: function() {
 		    var grid = Ext.getCmp('mainGrid');
 		    var record = grid.getSelectionModel().getSelection()[0];
-		    console.log(record);
 
             var window = Ext.create('PopupForm',{
                     width: 400,
@@ -140,6 +148,13 @@ Ext.define('Swan.view.Books', {
 
             window.show();
 		}
+        // handler: 'onEditClick'
+        // listeners: {
+        //     click: 'onEditClick'
+            // click: function() {
+            //     console.log('click fired');
+            // }
+        // }
 	}, {
 		text: 'Удалить',
 		handler: function() {
