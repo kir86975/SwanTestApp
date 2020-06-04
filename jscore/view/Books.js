@@ -80,8 +80,24 @@ Ext.define('PopupFormController', {
         var view = this.getView(),
             record = view.record;
 
-        view.destroy();
-        record.commit();
+        Ext.Ajax.request({
+            url: 'index.php/Book/editBook',
+            params: {'book': Ext.encode(record.data)},
+            // jsonData: JSON.stringify(record.data),
+            success: function(response, opts) {
+                var obj = Ext.decode(response.responseText);
+                console.dir(obj);
+                view.destroy();
+                record.commit();
+            },
+
+            failure: function(response, opts) {
+                var errorText = 'server-side failure with status code ' + response.status;
+                console.log(errorText);
+                Ext.Msg.alert('Ошибка', errorText);
+            }
+        });
+
     }
 });
 

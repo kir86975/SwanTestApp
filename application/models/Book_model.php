@@ -46,6 +46,14 @@ class Book_model extends CI_Model {
         return $query->result_array();
     }
 
+    public function editBook() {
+	    $book = $this->input->post('book');
+	    $book = json_decode($book, true);
+	    $this->prepareBookForDB($book);
+	    $this->db->replace('book', $book);
+	    return $this->db->error();
+    }
+
     public function addBook($book)
     {
         // todo Реализовать валидацию.
@@ -69,8 +77,10 @@ class Book_model extends CI_Model {
         $book['author_id'] = $author->id;
         $book['id'] = $book['book_id'];
         $book['name'] = $book['book_name'];
+        $book['year'] = $book['book_year'];
         unset($book['book_id']);
         unset($book['book_name']);
+        unset($book['book_year']);
         unset($book['author_name']);
     }
 
