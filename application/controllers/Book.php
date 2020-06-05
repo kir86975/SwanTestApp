@@ -23,4 +23,11 @@ class Book extends CI_Controller {
         $result = $this->Book_model->editBook();
         echo json_encode($result);
     }
+
+    public function removeBook()
+    {
+        $this->load->model('Book_model');
+        $result = $this->Book_model->removeBook();
+        echo json_encode($result);
+    }
 }

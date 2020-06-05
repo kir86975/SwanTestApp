@@ -54,6 +54,12 @@ class Book_model extends CI_Model {
 	    return $this->db->error();
     }
 
+    public function removeBook() {
+	    $book_id = $this->input->get('id');
+	    $this->db->delete('book', ['id' => $book_id]);
+	    return $this->db->error();
+    }
+
     public function addBook($book)
     {
         // todo Реализовать валидацию.
@@ -75,7 +81,11 @@ class Book_model extends CI_Model {
         $author = $this->getInsertedAuthor($authorName);
 
         $book['author_id'] = $author->id;
-        $book['id'] = $book['book_id'];
+
+        if (isset($book['book_id'])) {
+            $book['id'] = $book['book_id'];
+        }
+
         $book['name'] = $book['book_name'];
         $book['year'] = $book['book_year'];
         unset($book['book_id']);
@@ -99,8 +109,7 @@ class Book_model extends CI_Model {
             $this->db->insert('author', $author);
 
             $authorQuery = $this->db
-                ->select('author', ['name' => $authorName])
-                ->get('author');
+                ->get_where('author', ['name' => $authorName]);
 
             $author = $authorQuery->first_row();
         } else {
