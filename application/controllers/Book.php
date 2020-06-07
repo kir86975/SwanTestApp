@@ -30,4 +30,10 @@ class Book extends CI_Controller {
         $result = $this->Book_model->removeBook();
         echo json_encode($result);
     }
+
+    public function loadListInXml()
+    {
+        $this->load->model('Book_model');
+        $this->Book_model->loadBookListInXmlFile();
+    }
 }

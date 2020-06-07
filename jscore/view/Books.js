@@ -42,10 +42,15 @@ Ext.define('Swan.view.PopupFormController', {
         var view = this.getView(),
             record = view.record;
 
-        this.ajaxRequest('index.php/Book/editBook', {'book': Ext.encode(record.data)}, function() {
-            view.destroy();
-            record.commit();
-        });
+        var form = view.getForm();
+        if (form.isValid()) {
+            this.ajaxRequest('index.php/Book/editBook', {'book': Ext.encode(record.data)}, function() {
+                view.destroy();
+                record.commit();
+            });
+        } else {
+            Ext.Msg.alert('Ошибка', 'Введите корректные данные');
+        }
     },
 
     // create
@@ -113,24 +118,43 @@ var commonPopupFields = [
     {
         xtype: 'textfield',
         name: 'author_name',
-        label: 'Автор',
+        fieldLabel: 'Автор',
+        labelAlign: 'top',
         bind: '{book.author_name}',
         padding: '10px 100px 0 10px',
-        width: '95%'
+        width: '95%',
+        allowBlank: false,
     }, {
         xtype: 'textfield',
         name: 'book_name',
-        label: 'Название книги',
+        fieldLabel: 'Название книги',
+        labelAlign: 'top',
         bind: '{book.book_name}',
         padding: '10px 10px 0 10px',
-        width: '95%'
+        width: '95%',
+        allowBlank: false,
     }, {
         xtype: 'textfield',
         name: 'book_year',
-        label: 'Год издания',
+        fieldLabel: 'Год издания',
+        labelAlign: 'top',
         bind: '{book.book_year}',
         padding: '10px 10px 0 10px',
-        width: '95%'
+        width: '95%',
+        allowBlank: false,
+        regex: /^\d{3,}$/,
+        validator: function (val) {
+            var errMsg = 'Год издания не может быть больше текущего';
+            var now = new Date();
+
+            if (parseInt(val)) {
+                return +val <= now.getFullYear() ? true : errMsg;
+            } else {
+                return true;
+            }
+
+
+        }
     }
 ];
 
@@ -141,7 +165,8 @@ var updateButtons = {
         xtype: 'button',
         text: 'Обновить',
         iconCls: 'x-fa fa-check',
-        handler: 'submitUpdate'
+        handler: 'submitUpdate',
+        formBind: true,
     }, {
         xtype: 'button',
         text: 'Отмена',
@@ -157,7 +182,8 @@ var createButtons = {
         xtype: 'button',
         text: 'Создать',
         iconCls: 'x-fa fa-check',
-        handler: 'submitCreate'
+        handler: 'submitCreate',
+        formBind: true,
     }, {
         xtype: 'button',
         text: 'Отмена',
@@ -262,8 +288,23 @@ Ext.define('Swan.view.Books', {
 	}, {
 		text: 'Экспорт в XML',
 		handler: function() {
-			// todo надо реализовать удаление
-			Ext.Msg.alert('В разработке', 'Данный функционал ещё не реализован');
+		    // Работает, но выдает предупреждение в браузере
+            // Resource interpreted as Document but transferred with MIME type application/octet-stream
+            // window.location = 'index.php/Book/loadListInXml';
+
+            // Аналогично с первым методом
+            // Ext.create('Ext.Component', {
+            //     renderTo: Ext.getBody(),
+            //     cls: 'x-hidden',
+            //     id: 'downloadXml',
+            //     autoEl: {
+            //         tag: 'a',
+            //         src: 'index.php/Book/loadListInXml',
+            //         download: {},
+            //     }
+            // });
+
+            downloadURI('index.php/Book/loadListInXml', '');
 		}
 	}],
 	columns: [{
@@ -280,3 +321,13 @@ Ext.define('Swan.view.Books', {
 		width: 150
 	}],
 });
+
+function downloadURI(uri, name)
+{
+    var link = document.createElement("a");
+    link.setAttribute('download', name);
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+}

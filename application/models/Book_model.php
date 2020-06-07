@@ -46,6 +46,31 @@ class Book_model extends CI_Model {
         return $query->result_array();
     }
 
+    public function loadBookListInXmlFile()
+    {
+        $this->load->dbutil();
+
+        $query = $this->db
+            ->select('book.id id, book.name name, author.name author')
+            ->from('book')
+            ->join('author', 'book.author_id = author.id')
+            ->get();
+
+        $config = array (
+            'root'          => 'books',
+            'element'       => 'book',
+            'newline'       => "\n",
+            'tab'           => "\t"
+        );
+
+        $content = $this->dbutil->xml_from_result($query, $config);
+
+        $this->load->helper('download');
+
+        $name = 'Book list.xml';
+        force_download($name, $content);
+    }
+
     public function editBook() {
 	    $book = $this->input->post('book');
 	    $book = json_decode($book, true);
