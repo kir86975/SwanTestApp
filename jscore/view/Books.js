@@ -142,7 +142,7 @@ var commonPopupFields = [
         padding: '10px 10px 0 10px',
         width: '95%',
         allowBlank: false,
-        regex: /^\d{3,}$/,
+        regex: /^\d+$/,
         validator: function (val) {
             var errMsg = 'Год издания не может быть больше текущего';
             var now = new Date();
@@ -152,8 +152,6 @@ var commonPopupFields = [
             } else {
                 return true;
             }
-
-
         }
     }
 ];

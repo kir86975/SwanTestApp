@@ -7,7 +7,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Book_model extends CI_Model {
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->load->database();
     }
 
@@ -71,12 +72,23 @@ class Book_model extends CI_Model {
         force_download($name, $content);
     }
 
-    public function editBook() {
+    public function editBook()
+    {
 	    $book = $this->input->post('book');
 	    $book = json_decode($book, true);
-	    $this->prepareBookForDB($book);
-	    $this->db->replace('book', $book);
-	    return $this->db->error();
+
+        $this->load->library('form_validation');
+
+        $this->form_validation->set_data($book);
+
+        if ($this->form_validation->run('book/editBook') == FALSE) {
+            return ['code' => -1, 'message' => validation_errors()];
+        } else {
+            $this->prepareBookForDB($book);
+            $this->db->replace('book', $book);
+            return $this->db->error();
+        }
+
     }
 
     public function removeBook() {
@@ -101,7 +113,8 @@ class Book_model extends CI_Model {
     /**
      * @param $book
      */
-    private function prepareBookForDB(&$book): void {
+    private function prepareBookForDB(&$book): void
+    {
         $authorName = $book['author_name'];
         $author = $this->getInsertedAuthor($authorName);
 
@@ -123,7 +136,8 @@ class Book_model extends CI_Model {
      * @param $authorName
      * @return array|null
      */
-    private function getInsertedAuthor($authorName) {
+    private function getInsertedAuthor($authorName)
+    {
         $query = $this->db
             ->like('name', $authorName)
             ->get('author');

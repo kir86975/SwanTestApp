@@ -15,7 +15,7 @@ $config = [
         [
             'field' => 'book_year',
             'label' => 'Год издания',
-            'rules' => 'required|less_than_equal_to[' . date('Y') . ']',
+            'rules' => 'required|regex_match[/^\d+$/]|less_than_equal_to[' . date('Y') . ']',
             'errors' => ['less_than_equal_to' => 'Год издания не может быть больше текущего']
         ],
     ]
