@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Июн 01 2020 г., 13:01
+-- Время создания: Июн 09 2020 г., 15:56
 -- Версия сервера: 5.7.16
 -- Версия PHP: 7.1.0
 
@@ -49,8 +49,17 @@ CREATE TABLE `book` (
   `id` int(11) NOT NULL,
   `name` text COLLATE utf8_unicode_ci NOT NULL,
   `author_id` int(11) NOT NULL,
-  `book_year` int(4) NOT NULL
+  `year` int(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Дамп данных таблицы `book`
+--
+
+INSERT INTO `book` (`id`, `name`, `author_id`, `year`) VALUES
+(1, 'Евгений Онегин', 1, 1833),
+(2, 'Война и мир', 2, 1869),
+(3, 'Анна Каренина', 2, 1877);
 
 --
 -- Индексы сохранённых таблиц
@@ -82,7 +91,7 @@ ALTER TABLE `author`
 -- AUTO_INCREMENT для таблицы `book`
 --
 ALTER TABLE `book`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 --
 -- Ограничения внешнего ключа сохраненных таблиц
 --
