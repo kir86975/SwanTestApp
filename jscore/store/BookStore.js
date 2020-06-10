@@ -1,4 +1,4 @@
-Ext.define('Swan.view.BookStore', {
+Ext.define('Swan.store.BookStore', {
     extend: 'Ext.data.Store',
     alias: 'store.books',
 
