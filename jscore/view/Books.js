@@ -23,7 +23,6 @@ Ext.define('Swan.view.PopupForm', {
     resizable: false,
 });
 
-
 Ext.define('Swan.view.PopupFormController', {
     extend: 'Ext.app.ViewController',
     alias: 'controller.popupform',
@@ -63,8 +62,9 @@ Ext.define('Swan.view.PopupFormController', {
         /** @var Swan.view.PopupForm*/
         var view = this.getView();
         var values = view.getValues();
-        this.ajaxRequest('index.php/Book/editBook', {'book': Ext.encode(values)}, function() {
+        this.ajaxRequest('index.php/Book/editBook', {'book': Ext.encode(values)}, function(response) {
             var store = Ext.getCmp('mainGrid').getStore();
+            values.book_id = response.bookId;
             store.add(values);
             view.destroy();
         });
@@ -77,7 +77,7 @@ Ext.define('Swan.view.PopupFormController', {
             success: function(response, opts) {
                 var error = Ext.decode(response.responseText);
                 if (!error.code) {
-                    onSuccessActions();
+                    onSuccessActions(error);
                 } else {
                     Ext.Msg.alert('Ошибка', error.message);
                 }
@@ -91,28 +91,114 @@ Ext.define('Swan.view.PopupFormController', {
     },
 });
 
-// Ext.define('MyListViewController', {
-//     extend: 'Ext.app.ViewController',
-//     alias: 'controller.listview',
-//
-//     onEditClick: function() {
-//         var grid = Ext.getCmp('mainGrid');
-//         var record = grid.getSelectionModel().getSelection()[0];
-//         console.log(record);
-//
-//         var window = Ext.create('PopupForm',{
-//             width: 400,
-//             record: record,
-//             viewModel : {
-//                 data: {
-//                     book: record
-//                 }
-//             }
-//         });
-//
-//         window.show();
-//     }
-// });
+Ext.define('Swan.view.ToolbarController', {
+    extend: 'Ext.app.ViewController',
+    alias: 'controller.tbar',
+
+    onEditClick: function () {
+        var grid = Ext.getCmp('mainGrid');
+        var record = grid.getSelectionModel().getSelection()[0];
+
+        if (record !== undefined) {
+            var window = Ext.create('Swan.view.PopupForm',{
+                width: 400,
+                record: record,
+                viewModel : {
+                    data: {
+                        book: record
+                    }
+                },
+                items: commonPopupFields.concat(updateButtons),
+                title: 'Редактирование записи',
+            });
+
+            window.show();
+        } else {
+            Ext.Msg.alert('Ошибка', 'Выберите запись для редактирования')
+        }
+    },
+
+    onAddClick: function () {
+        var window = Ext.create('Swan.view.PopupForm',{
+            width: 400,
+            viewModel : {},
+            items: commonPopupFields.concat(createButtons),
+            title: 'Добавление записи'
+        });
+
+        window.show();
+    },
+
+    onRemoveClick: function () {
+        var grid = Ext.getCmp('mainGrid');
+        var record = grid.getSelectionModel().getSelection()[0];
+
+        if (record !== undefined) {
+            Ext.Msg.show({
+                title: 'Вы уверены что хотите удалить эту запись?',
+                message:
+                record.data['author_name'] + ' - ' +
+                record.data['book_name'] +
+                ' (' + record.data['book_year'] + ')',
+                buttons: Ext.Msg.YESNO,
+                fn: function(btn) {
+                    if (btn === 'yes') {
+                        Ext.Ajax.request({
+                            url: 'index.php/Book/removeBook?id=' + record.data['book_id'] ,
+                            success: function(response, opts) {
+                                var error = Ext.decode(response.responseText);
+                                if (!error.code) {
+                                    var grid = Ext.getCmp('mainGrid');
+                                    grid.getStore().remove(record);
+                                } else {
+                                    Ext.Msg.alert('Ошибка', error.message);
+                                }
+                            },
+
+                            failure: function(response, opts) {
+                                var errorText = 'server-side failure with status code ' + response.status;
+                                Ext.Msg.alert('Ошибка', errorText);
+                            }
+                        });
+
+                    }
+                }
+            });
+        } else {
+            Ext.Msg.alert('Ошибка', 'Выберите запись для удаления')
+        }
+    },
+
+    onExportClick: function () {
+        function downloadURI(uri, name)
+        {
+            var link = document.createElement("a");
+            link.setAttribute('download', name);
+            link.href = uri;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+
+        // Работает, но выдает предупреждение в браузере
+        // Resource interpreted as Document but transferred with MIME type application/octet-stream
+        // window.location = 'index.php/Book/loadListInXml';
+
+        // Аналогично с первым методом
+        // Ext.create('Ext.Component', {
+        //     renderTo: Ext.getBody(),
+        //     cls: 'x-hidden',
+        //     id: 'downloadXml',
+        //     autoEl: {
+        //         tag: 'a',
+        //         src: 'index.php/Book/loadListInXml',
+        //         download: {},
+        //     }
+        // });
+
+        downloadURI('index.php/Book/loadListInXml', '');
+    }
+});
 
 var commonPopupFields = [
     {
@@ -196,6 +282,7 @@ var createButtons = {
 Ext.define('Swan.view.Books', {
 	extend: 'Ext.grid.Panel',
     id: 'mainGrid',
+    controller: 'tbar',
     store: {
 		type: 'books',
 		autoLoad: true,
@@ -205,105 +292,19 @@ Ext.define('Swan.view.Books', {
 			direction: 'ASC'
 		}]
 	},
-	defaultListenerScope: true,
-	tbar: [{
+	tbar: [
+	    {
 		text: 'Добавить',
-		handler: function() {
-            var window = Ext.create('Swan.view.PopupForm',{
-                width: 400,
-                viewModel : {},
-                items: commonPopupFields.concat(createButtons),
-                title: 'Добавление записи'
-            });
-
-            window.show();
-        }
+		handler: 'onAddClick'
 	}, {
 		text: 'Редактировать',
-		handler: function() {
-            var grid = Ext.getCmp('mainGrid');
-            var record = grid.getSelectionModel().getSelection()[0];
-
-		    if (record !== undefined) {
-                var window = Ext.create('Swan.view.PopupForm',{
-                    width: 400,
-                    record: record,
-                    viewModel : {
-                        data: {
-                            book: record
-                        }
-                    },
-                    items: commonPopupFields.concat(updateButtons),
-                    title: 'Редактирование записи',
-                });
-
-                window.show();
-            } else {
-		        Ext.Msg.alert('Ошибка', 'Выберите запись для редактирования')
-            }
-		}
+        handler: 'onEditClick'
 	}, {
 		text: 'Удалить',
-		handler: function() {
-            var grid = Ext.getCmp('mainGrid');
-            var record = grid.getSelectionModel().getSelection()[0];
-
-            if (record !== undefined) {
-                Ext.Msg.show({
-                    title: 'Вы уверены что хотите удалить эту запись?',
-                    message:
-                        record.data['author_name'] + ' - ' +
-                        record.data['book_name'] +
-                        ' (' + record.data['book_year'] + ')',
-                    buttons: Ext.Msg.YESNO,
-                    fn: function(btn) {
-                        if (btn === 'yes') {
-                            Ext.Ajax.request({
-                                url: 'index.php/Book/removeBook?id=' + record.data['book_id'] ,
-                                success: function(response, opts) {
-                                    var error = Ext.decode(response.responseText);
-                                    if (!error.code) {
-                                        var grid = Ext.getCmp('mainGrid');
-                                        grid.getStore().remove(record);
-                                    } else {
-                                        Ext.Msg.alert('Ошибка', error.message);
-                                    }
-                                },
-
-                                failure: function(response, opts) {
-                                    var errorText = 'server-side failure with status code ' + response.status;
-                                    Ext.Msg.alert('Ошибка', errorText);
-                                }
-                            });
-
-                        }
-                    }
-                });
-            } else {
-                Ext.Msg.alert('Ошибка', 'Выберите запись для удаления')
-            }
-		}
+		handler: 'onRemoveClick'
 	}, {
 		text: 'Экспорт в XML',
-		handler: function() {
-		    // Работает, но выдает предупреждение в браузере
-            // Resource interpreted as Document but transferred with MIME type application/octet-stream
-            // window.location = 'index.php/Book/loadListInXml';
-
-            // Аналогично с первым методом
-            // Ext.create('Ext.Component', {
-            //     renderTo: Ext.getBody(),
-            //     cls: 'x-hidden',
-            //     id: 'downloadXml',
-            //     autoEl: {
-            //         tag: 'a',
-            //         src: 'index.php/Book/loadListInXml',
-            //         download: {},
-            //     }
-            // });
-
-            downloadURI('index.php/Book/loadListInXml', '');
-		}
+		handler: 'onExportClick'
 	}],
 	columns: [{
 		dataIndex: 'author_name',
@@ -319,13 +320,3 @@ Ext.define('Swan.view.Books', {
 		width: 150
 	}],
 });
-
-function downloadURI(uri, name)
-{
-    var link = document.createElement("a");
-    link.setAttribute('download', name);
-    link.href = uri;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-}

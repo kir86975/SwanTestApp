@@ -25,7 +25,6 @@ class Book_model extends CI_Model {
     /**
 	 * Загрузка списка книг
 	 */
-//	public function loadList()
 	private function loadIncodeList()
 	{
 		// todo реализовать получение списка книг из БД
@@ -86,7 +85,13 @@ class Book_model extends CI_Model {
         } else {
             $this->prepareBookForDB($book);
             $this->db->replace('book', $book);
-            return $this->db->error();
+            $error = $this->db->error();
+            if ($error['code'] === 0) {
+                $bookId = $this->db->insert_id();
+                return ['code' => 0, 'bookId' => $bookId];
+            } else {
+                return $error;
+            }
         }
 
     }
@@ -95,19 +100,6 @@ class Book_model extends CI_Model {
 	    $book_id = $this->input->get('id');
 	    $this->db->delete('book', ['id' => $book_id]);
 	    return $this->db->error();
-    }
-
-    public function addBook($book)
-    {
-        // todo Реализовать валидацию.
-
-        $this->prepareBookForDB($book);
-        $book = $this->tryToInsertBook($book);
-    }
-
-    private function tryToInsertBook($book)
-    {
-        $this->db->insert('book', $book);
     }
 
     /**
