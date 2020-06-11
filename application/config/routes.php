@@ -52,3 +52,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'main';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+$route['books']['get'] = 'Book/loadList';
+$route['books/(:any)']['put'] = 'Book/editBook';
+$route['books']['post'] = 'Book/editBook';
+$route['books/(:num)']['delete'] = 'Book/removeBook/$1';

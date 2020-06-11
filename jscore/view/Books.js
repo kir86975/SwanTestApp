@@ -9,6 +9,7 @@ Ext.define('Swan.view.Books', {
     store: {
 		type: 'books',
 		autoLoad: true,
+		// autoSync: true,
 		remoteSort: false,
 		sorters: [{
 			property: 'book_name',

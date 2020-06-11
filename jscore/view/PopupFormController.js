@@ -15,15 +15,17 @@ Ext.define('Swan.view.PopupFormController', {
     submitUpdate: function()
     {
         /** @var Swan.view.PopupForm*/
-        var view = this.getView(),
-            record = view.record;
+        var view = this.getView();
+            // record = view.record;
 
         var form = view.getForm();
         if (form.isValid()) {
-            this.ajaxRequest('index.php/Book/editBook', {'book': Ext.encode(record.data)}, function() {
-                view.destroy();
-                record.commit();
-            });
+            view.destroy();
+            // record.commit();
+
+            var store = Ext.getCmp('mainGrid').getStore();
+            store.sync();
+
         } else {
             Ext.Msg.alert('Ошибка', 'Введите корректные данные');
         }
@@ -41,12 +43,18 @@ Ext.define('Swan.view.PopupFormController', {
         /** @var Swan.view.PopupForm*/
         var view = this.getView();
         var values = view.getValues();
-        this.ajaxRequest('index.php/Book/editBook', {'book': Ext.encode(values)}, function(response) {
-            var store = Ext.getCmp('mainGrid').getStore();
-            values.book_id = response.bookId;
-            store.add(values);
-            view.destroy();
-        });
+        var form = view.getForm();
+
+        if (form.isValid()) {
+            this.ajaxRequest('index.php/Book/editBook', {'book': Ext.encode(values)}, function(response) {
+                var store = Ext.getCmp('mainGrid').getStore();
+                values.book_id = response.bookId;
+                store.add(values);
+                view.destroy();
+            });
+        } else {
+            Ext.Msg.alert('Ошибка', 'Введите корректные данные');
+        }
     },
 
     ajaxRequest: function(targetUrl, postParams, onSuccessActions)

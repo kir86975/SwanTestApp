@@ -73,7 +73,16 @@ class Book_model extends CI_Model {
 
     public function editBook()
     {
-	    $book = $this->input->post('book');
+        $method = $this->detectMethod();
+        switch ($method) {
+            case 'put':
+                $book = $this->getPutOrDeleteParams();
+            break;
+            case 'post':
+                $book = $this->input->post('book');
+            break;
+        }
+
 	    $book = json_decode($book, true);
 
         $this->load->library('form_validation');
@@ -94,6 +103,29 @@ class Book_model extends CI_Model {
             }
         }
 
+    }
+
+    private function getPutOrDeleteParams() {
+        parse_str(file_get_contents("php://input"),$var_array);
+        return array_keys($var_array)[0];
+    }
+
+    private function detectMethod() {
+        $method = strtolower($this->input->server('REQUEST_METHOD'));
+
+        if ($this->config->item('enable_emulate_request')) {
+            if ($this->input->post('_method')) {
+                $method = strtolower($this->input->post('_method'));
+            } else if ($this->input->server('HTTP_X_HTTP_METHOD_OVERRIDE')) {
+                $method = strtolower($this->input->server('HTTP_X_HTTP_METHOD_OVERRIDE'));
+            }
+        }
+
+        if (in_array($method, array('get', 'delete', 'post', 'put'))) {
+            return $method;
+        }
+
+        return 'get';
     }
 
     public function removeBook()
