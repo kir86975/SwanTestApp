@@ -41,12 +41,18 @@ Ext.define('Swan.view.PopupFormController', {
         /** @var Swan.view.PopupForm*/
         var view = this.getView();
         var values = view.getValues();
-        this.ajaxRequest('index.php/Book/editBook', {'book': Ext.encode(values)}, function(response) {
-            var store = Ext.getCmp('mainGrid').getStore();
-            values.book_id = response.bookId;
-            store.add(values);
-            view.destroy();
-        });
+        var form = view.getForm();
+
+        if (form.isValid()) {
+            this.ajaxRequest('index.php/Book/editBook', {'book': Ext.encode(values)}, function(response) {
+                var store = Ext.getCmp('mainGrid').getStore();
+                values.book_id = response.bookId;
+                store.add(values);
+                view.destroy();
+            });
+        } else {
+            Ext.Msg.alert('Ошибка', 'Введите корректные данные');
+        }
     },
 
     ajaxRequest: function(targetUrl, postParams, onSuccessActions)
