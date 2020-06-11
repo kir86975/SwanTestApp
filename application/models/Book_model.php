@@ -96,7 +96,8 @@ class Book_model extends CI_Model {
 
     }
 
-    public function removeBook() {
+    public function removeBook()
+    {
 	    $book_id = $this->input->get('id');
 	    $this->db->delete('book', ['id' => $book_id]);
 	    return $this->db->error();

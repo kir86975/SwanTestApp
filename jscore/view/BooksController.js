@@ -2,7 +2,8 @@ Ext.define('Swan.view.BooksController', {
     extend: 'Ext.app.ViewController',
     alias: 'controller.books',
 
-    onEditClick: function () {
+    onEditClick: function()
+    {
         var grid = Ext.getCmp('mainGrid');
         var record = grid.getSelectionModel().getSelection()[0];
 
@@ -25,7 +26,8 @@ Ext.define('Swan.view.BooksController', {
         }
     },
 
-    onAddClick: function () {
+    onAddClick: function()
+    {
         var window = Ext.create('Swan.view.PopupForm',{
             width: 400,
             viewModel : {},
@@ -36,7 +38,8 @@ Ext.define('Swan.view.BooksController', {
         window.show();
     },
 
-    onRemoveClick: function () {
+    onRemoveClick: function()
+    {
         var grid = Ext.getCmp('mainGrid');
         var record = grid.getSelectionModel().getSelection()[0];
 
@@ -76,7 +79,8 @@ Ext.define('Swan.view.BooksController', {
         }
     },
 
-    onExportClick: function () {
+    onExportClick: function()
+    {
         function downloadURI(uri, name)
         {
             var link = document.createElement("a");
@@ -136,7 +140,7 @@ var commonPopupFields = [
         width: '95%',
         allowBlank: false,
         regex: /^\d+$/,
-        validator: function (val) {
+        validator: function(val) {
             var errMsg = 'Год издания не может быть больше текущего';
             var now = new Date();
 

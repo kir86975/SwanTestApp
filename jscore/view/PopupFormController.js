@@ -3,7 +3,8 @@ Ext.define('Swan.view.PopupFormController', {
     alias: 'controller.popupForm',
 
     // update
-    cancelUpdate: function () {
+    cancelUpdate: function()
+    {
         var view = this.getView(),
             record = view.record;
 
@@ -11,7 +12,8 @@ Ext.define('Swan.view.PopupFormController', {
         record.reject();
     },
 
-    submitUpdate: function() {
+    submitUpdate: function()
+    {
         /** @var Swan.view.PopupForm*/
         var view = this.getView(),
             record = view.record;
@@ -28,12 +30,14 @@ Ext.define('Swan.view.PopupFormController', {
     },
 
     // create
-    cancelCreate: function () {
+    cancelCreate: function()
+    {
         var view = this.getView();
         view.destroy();
     },
 
-    submitCreate: function () {
+    submitCreate: function()
+    {
         /** @var Swan.view.PopupForm*/
         var view = this.getView();
         var values = view.getValues();
@@ -45,7 +49,8 @@ Ext.define('Swan.view.PopupFormController', {
         });
     },
 
-    ajaxRequest: function(targetUrl, postParams, onSuccessActions) {
+    ajaxRequest: function(targetUrl, postParams, onSuccessActions)
+    {
         Ext.Ajax.request({
             url: targetUrl,
             params: postParams,
