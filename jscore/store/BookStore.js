@@ -7,7 +7,6 @@ Ext.define('Swan.store.BookStore', {
         url: 'index.php/Book/loadList',
         reader: {
             type: 'json',
-            idProperty: 'book_id'
         }
     }
 });
