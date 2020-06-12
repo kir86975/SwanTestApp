@@ -14,7 +14,13 @@ Ext.define('Swan.store.BookModel', {
             type: 'json',
             clientIdProperty: 'book_id',
         }
-    },
+    }
+});
+
+Ext.define('Swan.store.BookStore', {
+    extend: 'Ext.data.Store',
+    alias: 'store.books',
+    model: 'Swan.store.BookModel',
 
     listeners : {
         write: function(store, operation, opts)
@@ -29,13 +35,7 @@ Ext.define('Swan.store.BookModel', {
         },
         update:function()
         {
-            console.log('tasks store updated');
+            console.log('book store updated');
         }
     }
-});
-
-Ext.define('Swan.store.BookStore', {
-    extend: 'Ext.data.Store',
-    alias: 'store.books',
-    model: 'Swan.store.BookModel'
 });

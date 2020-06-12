@@ -7,6 +7,52 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Book_model extends CI_Model {
 
+    const METHOD_GET = 'get';
+    const METHOD_POST = 'post';
+    const METHOD_PUT = 'put';
+    const METHOD_DELETE = 'delete';
+
+    const REQUEST_METHODS = [
+        self::METHOD_GET,
+        self::METHOD_POST,
+        self::METHOD_PUT,
+        self::METHOD_DELETE
+    ];
+
+    private function getValidationConfigByRequestMethod($method, $data) {
+      $defaultConfig =  [
+          [
+              'field' => 'author_name',
+              'label' => 'Автор',
+              'rules' => 'required'
+          ],
+          [
+              'field' => 'book_name',
+              'label' => 'Название книги',
+              'rules' => 'required'
+          ],
+          [
+              'field' => 'book_year',
+              'label' => 'Год издания',
+              'rules' => 'required|regex_match[/^\d+$/]|less_than_equal_to[' . date('Y') . ']',
+              'errors' => ['less_than_equal_to' => 'Год издания не может быть больше текущего']
+          ],
+      ];
+
+      if ($method === self::METHOD_PUT) {
+         $putConfig = [];
+         foreach ($defaultConfig as $key => $value) {
+            if (isset($data[$value['field']])) {
+                $putConfig[] = $value;
+            }
+         }
+
+         $defaultConfig = $putConfig;
+      }
+
+      return $defaultConfig;
+    }
+
     public function __construct()
     {
         $this->load->database();
@@ -75,10 +121,10 @@ class Book_model extends CI_Model {
     {
         $method = $this->detectMethod();
         switch ($method) {
-            case 'put':
+            case self::METHOD_PUT:
                 $book = $this->getPutOrDeleteParams();
             break;
-            case 'post':
+            case self::METHOD_POST:
                 $book = $this->input->post('book');
             break;
         }
@@ -89,11 +135,22 @@ class Book_model extends CI_Model {
 
         $this->form_validation->set_data($book);
 
-        if ($this->form_validation->run('book/editBook') == FALSE) {
+        $validationConfig = $this->getValidationConfigByRequestMethod($method, $book);
+        $this->form_validation->set_rules($validationConfig);
+        if ($this->form_validation->run() == FALSE) {
             return ['code' => -1, 'message' => validation_errors()];
         } else {
             $this->prepareBookForDB($book);
-            $this->db->replace('book', $book);
+
+            switch ($method) {
+                case self::METHOD_PUT:
+                    $this->db->where('id', $book['id']);
+                    $this->db->update('book', $book);
+                    break;
+                case self::METHOD_POST:
+                    $this->db->replace('book', $book);
+                    break;
+            }
             $error = $this->db->error();
             if ($error['code'] === 0) {
                 $bookId = $this->db->insert_id();
@@ -121,11 +178,11 @@ class Book_model extends CI_Model {
             }
         }
 
-        if (in_array($method, array('get', 'delete', 'post', 'put'))) {
+        if (in_array($method, self::REQUEST_METHODS)) {
             return $method;
         }
 
-        return 'get';
+        return self::METHOD_GET;
     }
 
     public function removeBook()
@@ -140,17 +197,25 @@ class Book_model extends CI_Model {
      */
     private function prepareBookForDB(&$book): void
     {
-        $authorName = $book['author_name'];
-        $author = $this->getInsertedAuthor($authorName);
+        if (isset($book['author_name'])) {
+            $authorName = $book['author_name'];
+            $author = $this->getInsertedAuthor($authorName);
 
-        $book['author_id'] = $author->id;
+            $book['author_id'] = $author->id;
+        }
 
         if (isset($book['book_id'])) {
             $book['id'] = $book['book_id'];
         }
 
-        $book['name'] = $book['book_name'];
-        $book['year'] = $book['book_year'];
+        if (isset($book['book_name'])) {
+            $book['name'] = $book['book_name'];
+        }
+
+        if (isset($book['book_year'])) {
+            $book['year'] = $book['book_year'];
+        }
+
         unset($book['book_id']);
         unset($book['book_name']);
         unset($book['book_year']);
